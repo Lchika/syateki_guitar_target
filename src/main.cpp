@@ -1,4 +1,5 @@
 #include <memory>
+#include <array>
 #include <M5Stack.h>
 #include <LovyanGFX.hpp>
 #include <target.hpp>
@@ -10,7 +11,8 @@ static void init_lcd(void);
 static void update_motor(int motor_power);
 static void show_reflector_values(int top, int bottom);
 static void show_motor_value(int power);
-static void show_gun_id(int gun_id);
+template<std::size_t N>
+static void show_gun_id(std::array<target::Target*, N> targets);
 
 // cnstant expressions
 static constexpr int PIN_MOTOR_REF = 26;
@@ -22,7 +24,11 @@ static constexpr int PIN_TOP_REFLECTOR = 36;
 // global variables
 static int motor_power = 0;
 static LGFX lcd;
-static std::unique_ptr<target::Target> t(new target::Target(std::unique_ptr<target::IHitReactor>(new FullColorLedHitReactor(1)), std::unique_ptr<target::IRayDetector>(new IrRayDetector(0))));
+static std::array<target::Target*, 3> targets = {
+  (new target::Target(std::unique_ptr<target::IHitReactor>(new FullColorLedHitReactor(1, 0x70, true)), std::unique_ptr<target::IRayDetector>(new IrRayDetector(0)))),
+  (new target::Target(std::unique_ptr<target::IHitReactor>(new FullColorLedHitReactor(2, 0x70, false)), std::unique_ptr<target::IRayDetector>(new IrRayDetector(1)))),
+  (new target::Target(std::unique_ptr<target::IHitReactor>(new FullColorLedHitReactor(3, 0x70, false)), std::unique_ptr<target::IRayDetector>(new IrRayDetector(2))))
+};
 
 // functions
 void setup()
@@ -43,6 +49,9 @@ void setup()
   pinMode(PIN_BOTTOM_REFLECTOR, INPUT);
   pinMode(PIN_TOP_REFLECTOR, INPUT);
 
+  for(target::Target* target: targets){
+    target->maintenance();
+  }
   init_lcd();
 
   show_motor_value(motor_power);
@@ -71,7 +80,7 @@ void loop()
 
   show_reflector_values(analogRead(PIN_TOP_REFLECTOR), analogRead(PIN_BOTTOM_REFLECTOR));
 
-  show_gun_id(t->update());
+  show_gun_id(targets);
   delay(100);
 }
 
@@ -114,9 +123,15 @@ static void show_motor_value(int power)
   return;
 }
 
-static void show_gun_id(int gun_id)
+template<std::size_t N>
+static void show_gun_id(std::array<target::Target*, N> targets)
 {
   lcd.setCursor(10,30);
-  lcd.printf("gun id: neck=%d", gun_id);
+  lcd.print("gun id: ");
+  int i = 0;
+  for(target::Target* target: targets){
+    lcd.printf("t[%d]=%d", i, target->update());
+    i++;
+  }
   return;
 }

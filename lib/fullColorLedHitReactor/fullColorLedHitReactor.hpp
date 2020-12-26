@@ -10,15 +10,15 @@ class FullColorLedHitReactor : public target::IHitReactor
 {
 public:
   //! idはHT16K33LED基板上のチャンネル番号(1-5)を指定する。
-  FullColorLedHitReactor(int id)
+  FullColorLedHitReactor(int id, int adress = 0x70, bool do_wire_begin = true)
   {
     if (id < 1 || id > 5)
     {
       id = 1;
     }
-    _led.reset(new ht16k33LED::Led(id - 1));
+    _led.reset(new ht16k33LED::Led(id - 1, adress, do_wire_begin));
     _led->init();
-    _led->clear();
+    //_led->clear();
   }
   void active(int gunId) override
   {
@@ -41,6 +41,29 @@ public:
       delay(time);
     }
   }
+  bool maintenance() override
+  {
+    unsigned count = 0;
+    for (int i = 0; i < 3; i++)
+    {
+      if (count % 3 == 0)
+      {
+        _led->write_color(ht16k33LED::red);
+      }
+      else if (count % 3 == 1)
+      {
+        _led->write_color(ht16k33LED::green);
+      }
+      else
+      {
+        _led->write_color(ht16k33LED::blue);
+      }
+      count++;
+      delay(1000);
+    }
+    return true;
+  }
+  static bool is_initialized;
 
 private:
   std::unique_ptr<ht16k33LED::Led> _led;
@@ -59,5 +82,6 @@ private:
     return ht16k33LED::Color::clear;
   }
 };
+
 
 #endif

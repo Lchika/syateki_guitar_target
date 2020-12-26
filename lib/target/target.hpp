@@ -13,6 +13,7 @@ namespace target
     virtual void active(int gun_id) = 0;
     virtual void inactive() = 0;
     virtual void hit(int gun_id) = 0;
+    virtual bool maintenance() = 0;
   };
 
   class IRayDetector
@@ -50,6 +51,10 @@ namespace target
         _hitReactor->hit(shot_gun_id);
       }
       return recieved_gun_id;
+    }
+    bool maintenance()
+    {
+      return _hitReactor->maintenance();
     }
 
   private:
