@@ -1,3 +1,4 @@
+#include <M5Stack.h>
 #include <map>
 #include <Wire.h>
 #include "ht16k33LED.hpp"
@@ -11,15 +12,19 @@ Led::Led(uint8_t id, uint8_t address, bool do_wire_begin)
 :_address(address)
 ,_id(id)
 {
+  Serial.printf("Led generate id=%d\n", id);
   if(do_wire_begin){
+    Serial.println("wire.begin()");
     Wire.begin();
   }
 }
 
 void Led::init(){
+  Serial.printf("Led init() called id=%d\n", this->_id);
   if(_initialized){
     return;
   }
+  Serial.printf("Led init() run id=%d\n", this->_id);
   // システムオシレータON
   Wire.beginTransmission(_address);
   Wire.write(0x21);

@@ -14,6 +14,11 @@ public:
   {
     return _irReciever->read();
   }
+  bool init() override
+  {
+    // 特に初期化処理はなし
+    return true;
+  }
 
 private:
   std::unique_ptr<IrReceiver> _irReciever;
