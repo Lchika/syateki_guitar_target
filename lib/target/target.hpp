@@ -13,6 +13,8 @@ namespace target
     virtual void active(int gun_id) = 0;
     virtual void inactive() = 0;
     virtual void hit(int gun_id) = 0;
+    virtual bool maintenance() = 0;
+    virtual bool init() = 0;
   };
 
   class IRayDetector
@@ -20,6 +22,7 @@ namespace target
   public:
     virtual ~IRayDetector() {}
     virtual int detect() = 0;
+    virtual bool init() = 0;
   };
 
   class Target
@@ -50,6 +53,26 @@ namespace target
         _hitReactor->hit(shot_gun_id);
       }
       return recieved_gun_id;
+    }
+    bool maintenance()
+    {
+      return _hitReactor->maintenance();
+    }
+    // M5Stackの場合、I2C関係はM5.begin()の後でないとうまく動かないようだ。
+    // I2C関係や内容をシリアルに出したい処理はここに書く。
+    bool initialize()
+    {
+      if (!_hitReactor->init())
+      {
+        Serial.println("faild to initialize hitReactor");
+        return false;
+      }
+      if (!_rayDetector->init())
+      {
+        Serial.println("faild to initialize rayDetector");
+        return false;
+      }
+      return true;
     }
 
   private:
